@@ -1,0 +1,3 @@
+"""
+GUI Module for SecureStego.
+"""
