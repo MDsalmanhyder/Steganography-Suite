@@ -1,4 +1,4 @@
-# CloakPix 🛡️ – Enterprise Secure Image & Audio Steganography Suite
+# CloakPix 🛡️ – Secure Image & Audio Steganography Suite
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![GUI](https://img.shields.io/badge/GUI-PyQt6-41CD52?logo=qt&logoColor=white)](https://riverbankcomputing.com/software/pyqt/)
