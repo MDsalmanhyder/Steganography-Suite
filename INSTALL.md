@@ -100,7 +100,7 @@ python main.py capacity --image demo_assets/carrier_cyber_landscape.png --bits 1
 
 ## 4. Running the Test Suite
 
-To verify system integrity and run all 28 automated unit/integration tests:
+To verify system integrity and run all 43 automated unit/integration tests:
 ```bash
 python -m pytest tests/ -v
 ```

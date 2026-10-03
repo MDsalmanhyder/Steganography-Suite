@@ -40,6 +40,14 @@ htmlcov/
 *.swp
 *.swo
 
-# SecureStego persistent logs & local cache
+# CloakPix / SecureStego persistent logs & local cache
 ~/.securestego/
 .securestego/
+~/.cloakpix/
+.cloakpix/
+
+# OS and Temporary Files
+.DS_Store
+Thumbs.db
+*.bak
+demo_assets/stego_compressed.png
