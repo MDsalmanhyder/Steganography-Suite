@@ -449,7 +449,7 @@ git commit -m "docs: finalize enterprise README and GitHub release preparation"
 ### 3. Link Remote Repository & Push
 Create a new repository on [GitHub](https://github.com/new) (e.g. `cloakpix`), then run:
 ```bash
-git remote add origin https://github.com/<your-username>/cloakpix.git
+git remote add origin https://github.com/<your-username>
 git branch -M main
 git push -u origin main
 ```
@@ -459,5 +459,3 @@ git push -u origin main
 ## 📄 License & Credits
 
 * **License**: Distributed under the [MIT License](LICENSE).
-* **Reference & Lineage**: Incorporates concepts inspired by [ragibson/Steganography](https://github.com/ragibson/Steganography) (`stego-lsb`, `WavSteg`, and `StegDetect`) under MIT License.
-* **Authors**: CloakPix Engineering Team (2026).
