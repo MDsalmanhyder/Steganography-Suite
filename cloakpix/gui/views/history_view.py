@@ -1,5 +1,5 @@
 """
-History and Audit Trail View for SecureStego.
+History and Audit Trail View for CloakPix.
 Provides searchable, filterable logs of all steganographic operations.
 """
 
@@ -22,7 +22,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from securestego.core.file_manager import AuditLogger
+from cloakpix.core.file_manager import AuditLogger
 
 
 class HistoryView(QWidget):
@@ -141,7 +141,7 @@ class HistoryView(QWidget):
         save_path, selected_filter = QFileDialog.getSaveFileName(
             self,
             "Export Audit Logs",
-            "securestego_audit_logs.csv",
+            "cloakpix_audit_logs.csv",
             "CSV Spreadsheet (*.csv);;JSON File (*.json)",
         )
 

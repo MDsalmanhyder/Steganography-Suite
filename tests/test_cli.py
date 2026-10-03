@@ -1,5 +1,5 @@
 """
-End-to-end tests for SecureStego CLI commands.
+End-to-end tests for CloakPix CLI commands.
 """
 
 import sys
@@ -7,7 +7,7 @@ from PIL import Image
 import numpy as np
 import pytest
 
-from securestego.cli import build_parser, cmd_hide, cmd_extract, cmd_analyze, cmd_capacity
+from cloakpix.cli import build_parser, cmd_hide, cmd_extract, cmd_analyze, cmd_capacity
 
 
 @pytest.fixture

@@ -1,10 +1,10 @@
 """
-Unit tests for cryptographic engine in SecureStego.
+Unit tests for cryptographic engine in CloakPix.
 Tests AES-256-GCM encryption, decryption, PBKDF2 key derivation, and tamper resistance.
 """
 
 import pytest
-from securestego.core.crypto import (
+from cloakpix.core.crypto import (
     derive_key,
     encrypt_payload,
     decrypt_payload,
@@ -12,7 +12,7 @@ from securestego.core.crypto import (
     KEY_SIZE_BYTES,
     SALT_SIZE_BYTES,
 )
-from securestego.core.exceptions import InvalidPasswordError
+from cloakpix.core.exceptions import InvalidPasswordError
 
 
 def test_derive_key_length_and_determinism():

@@ -1,6 +1,6 @@
-# SecureStego – Installation & Setup Guide
+# CloakPix – Installation & Setup Guide
 
-This guide provides instructions for setting up and running **SecureStego** across Windows, macOS, and Linux environments.
+This guide provides instructions for setting up and running **CloakPix** across Windows, macOS, and Linux environments.
 
 ---
 
@@ -53,14 +53,14 @@ python main.py
 ```
 or explicitly:
 ```bash
-python -m securestego.app
+python -m cloakpix.app
 ```
 
 ---
 
 ### Running the Command-Line Interface (CLI)
 
-SecureStego comes with a full-featured CLI for scripting, batch operations, and headless servers:
+CloakPix comes with a full-featured CLI for scripting, batch operations, and headless servers:
 
 #### 1. Display Help & Subcommands:
 ```bash
@@ -110,7 +110,7 @@ python -m pytest tests/ -v
 ## 5. Troubleshooting & FAQ
 
 * **Q: Why does my extracted file have an invalid password error?**
-  * *A: SecureStego uses AES-256-GCM authenticated encryption. An incorrect password or any single-bit alteration in the stego image (e.g. from JPEG compression or resizing) triggers an immediate cryptographic integrity check failure.*
+  * *A: CloakPix uses AES-256-GCM authenticated encryption. An incorrect password or any single-bit alteration in the stego image (e.g. from JPEG compression or resizing) triggers an immediate cryptographic integrity check failure.*
 * **Q: Can I use JPEG as a carrier image?**
   * *A: Steganography requires lossless formats like PNG, BMP, or TIFF. Lossy JPEG compression irreversibly modifies the least significant bits upon saving, which destroys embedded steganographic payloads.*
 * **Q: How can I maximize visual quality?**

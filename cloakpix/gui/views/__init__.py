@@ -1,3 +1,4 @@
 """
-GUI Tab Views for SecureStego.
+GUI Tab Views for CloakPix.
 """
+

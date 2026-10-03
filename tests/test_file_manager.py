@@ -3,7 +3,7 @@ Unit tests for file manager and audit logging.
 """
 
 from PIL import Image
-from securestego.core.file_manager import FileManager, AuditLogger
+from cloakpix.core.file_manager import FileManager, AuditLogger
 
 
 def test_audit_logger(tmp_path):

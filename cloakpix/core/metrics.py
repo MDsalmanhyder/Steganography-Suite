@@ -1,5 +1,5 @@
 """
-Image metrics and quality evaluation module for SecureStego.
+Image metrics and quality evaluation module for CloakPix.
 Calculates PSNR, MSE, SSIM, and Shannon entropy.
 """
 

@@ -1,9 +1,9 @@
 """
-Drag and Drop Zone Widget for SecureStego.
-Provides interactive visual drag-and-drop file loading with previews.
+Drag and Drop Zone Widget for CloakPix.
 """
 
 import os
+import wave
 from typing import List, Optional
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QPixmap, QImage
@@ -21,17 +21,17 @@ from PIL import Image
 
 class DropZone(QFrame):
     """
-    Interactive drag-and-drop zone with image thumbnail/file preview.
+    Interactive drag-and-drop zone with image thumbnail and audio file preview.
     """
     file_selected = pyqtSignal(str)
     file_cleared = pyqtSignal()
 
     def __init__(
         self,
-        title: str = "Drag & Drop Image Here",
-        subtitle: str = "Supports PNG, BMP, TIFF (Lossless Recommended)",
-        file_filters: str = "Image Files (*.png *.bmp *.tiff *.webp *.jpg *.jpeg);;All Files (*.*)",
-        is_image_only: bool = True,
+        title: str = "Drag & Drop Carrier (Image or WAV Audio) Here",
+        subtitle: str = "Supports PNG, BMP, TIFF, WEBP, and WAV Audio",
+        file_filters: str = "Supported Carriers (*.png *.bmp *.tiff *.webp *.wav);;Images (*.png *.bmp *.tiff *.webp);;Audio Files (*.wav);;All Files (*.*)",
+        is_image_only: bool = False,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
@@ -151,8 +151,28 @@ class DropZone(QFrame):
         self.current_file_path = file_path
         filename = os.path.basename(file_path)
         size_kb = os.path.getsize(file_path) / 1024.0
+        ext = os.path.splitext(filename)[1].lower()
 
-        if self.is_image_only:
+        if ext == ".wav":
+            try:
+                with wave.open(file_path, "rb") as wf:
+                    frames = wf.getnframes()
+                    rate = wf.getframerate()
+                    duration = frames / float(rate) if rate > 0 else 0.0
+                    channels = wf.getnchannels()
+                    sampwidth = wf.getsampwidth() * 8
+                self.icon_label.setPixmap(QPixmap())
+                self.icon_label.setText("🎵")
+                self.icon_label.setStyleSheet("font-size: 40px; background: transparent;")
+                ch_str = "Mono" if channels == 1 else "Stereo" if channels == 2 else f"{channels}ch"
+                self.title_label.setText(f"{filename} ({duration:.2f}s, {ch_str})")
+                self.subtitle_label.setText(f"{rate:,} Hz | {sampwidth}-bit PCM | {size_kb:.1f} KB")
+            except Exception:
+                self.icon_label.setPixmap(QPixmap())
+                self.icon_label.setText("🎵")
+                self.title_label.setText(filename)
+                self.subtitle_label.setText(f"WAV Audio | Size: {size_kb:.1f} KB")
+        elif ext in [".png", ".bmp", ".tiff", ".tif", ".webp", ".jpg", ".jpeg"] or self.is_image_only:
             try:
                 # Load image and make thumbnail
                 pixmap = QPixmap(file_path)
@@ -180,10 +200,10 @@ class DropZone(QFrame):
                 self.title_label.setText(filename)
                 self.subtitle_label.setText(f"Size: {size_kb:.1f} KB")
         else:
-            ext = os.path.splitext(filename)[1].upper()
+            self.icon_label.setPixmap(QPixmap())
             self.icon_label.setText("📄")
             self.title_label.setText(filename)
-            self.subtitle_label.setText(f"Type: {ext} | Size: {size_kb:.1f} KB")
+            self.subtitle_label.setText(f"Type: {ext.upper()} | Size: {size_kb:.1f} KB")
 
         self.clear_btn.setVisible(True)
         self._set_loaded_style()

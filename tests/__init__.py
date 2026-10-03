@@ -1,1 +1,1 @@
-"""Test suite package for SecureStego."""
+"""Test suite package for CloakPix."""

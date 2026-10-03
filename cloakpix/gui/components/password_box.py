@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from securestego.core.crypto import evaluate_password_strength
+from cloakpix.core.crypto import evaluate_password_strength
 
 
 class PasswordBox(QWidget):

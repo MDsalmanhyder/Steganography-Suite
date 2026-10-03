@@ -1,3 +1,4 @@
 """
-GUI reusable components for SecureStego.
+GUI reusable components for CloakPix.
 """
+

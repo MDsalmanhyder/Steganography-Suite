@@ -1,5 +1,5 @@
 """
-Capacity Bar Component for SecureStego.
+Capacity Bar Component for CloakPix.
 Visualizes payload size relative to carrier image embedding capacity.
 """
 

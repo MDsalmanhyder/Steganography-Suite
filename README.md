@@ -1,49 +1,60 @@
-# SecureStego 🛡️ – Enterprise Secure Image Steganography & Forensics Suite
+# CloakPix 🛡️ – Enterprise Secure Image & Audio Steganography Suite
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![GUI](https://img.shields.io/badge/GUI-PyQt6-41CD52?logo=qt&logoColor=white)](https://riverbankcomputing.com/software/pyqt/)
 [![Security](https://img.shields.io/badge/Encryption-AES--256--GCM-red)](https://pycryptodome.readthedocs.io/)
-[![Forensics](https://img.shields.io/badge/Forensics-Chi--Square%20%26%20Entropy-blue)](https://scipy.org/)
-[![Tests](https://img.shields.io/badge/Tests-28%20Passed-brightgreen)](tests/)
+[![Media](https://img.shields.io/badge/Carriers-PNG%20%7C%20BMP%20%7C%20TIFF%20%7C%20WEBP%20%7C%20WAV-blueviolet)](https://github.com/)
+[![StegDetect](https://img.shields.io/badge/StegDetect-LSB%20Contrast%20Normalizer-orange)](https://github.com/ragibson/Steganography)
+[![Tests](https://img.shields.io/badge/Tests-43%20Passed-brightgreen)](tests/)
 
-**SecureStego** is an enterprise-grade cross-platform steganography application and image forensics lab. It allows users to securely conceal encrypted text messages and arbitrary files (PDF, DOCX, ZIP, TXT, images, and binaries) inside lossless PNG images using Least Significant Bit (LSB) embedding, backed by **AES-256-GCM** authenticated encryption, **PBKDF2-HMAC-SHA256** key derivation, and comprehensive image steganalysis tools.
+**CloakPix** is an enterprise-grade multi-media steganography application and digital forensics laboratory. It conceals encrypted text messages and arbitrary files (PDF, DOCX, ZIP, TXT, images, and binaries) inside lossless images (**PNG, BMP, TIFF, lossless WEBP**) and uncompressed PCM audio (**WAV 8/16/32-bit**) using Least Significant Bit (LSB) embedding, backed by **AES-256-GCM** authenticated encryption, **PBKDF2-HMAC-SHA256** key derivation, zlib Deflate pre-compression, and a full forensic steganalysis suite including **StegDetect** visual contrast normalization.
+
+> Inspired by and improving upon [ragibson/Steganography](https://github.com/ragibson/Steganography) (`stego-lsb`), CloakPix adds military-grade authenticated encryption, automated header detection across multi-bit depths, audio steganography, interactive PyQt6 GUI, and statistical steganalysis.
 
 ---
 
 ## 🌟 Key Highlights & Capabilities
 
 * **🔒 Military-Grade Cryptographic Security**:
-  * AES-256 in Galois/Counter Mode (**AES-256-GCM**) provides both confidentiality and cryptographic integrity verification.
+  * AES-256 in Galois/Counter Mode (**AES-256-GCM**) provides both confidentiality and cryptographic authenticity verification.
   * Key derivation via **PBKDF2-HMAC-SHA256** with **200,000 iterations** and random 128-bit cryptographic salts.
-  * Instant tamper detection: any single altered pixel or incorrect password immediately fails GCM tag verification.
-* **📦 Universal Arbitrary File & Text Concealment**:
-  * Hide secret plain text or binary files such as PDF documents, Word `.docx`, `.zip` archives, `.txt`, and images.
-  * Preserves original filenames and payload metadata securely inside the encrypted stego stream.
-* **⚡ Vectorized High-Performance LSB Engine**:
-  * Configurable embedding density (1, 2, 3, or 4 LSB bits per channel).
-  * Extremely high image fidelity (**PSNR > 50 dB** and **SSIM > 0.999** for 1-LSB mode).
-  * Automated capacity pre-flight validation preventing buffer overflow.
+  * Instant tamper detection: modifying any carrier bit or entering an incorrect passphrase fails GCM tag verification immediately.
+* **🎵 Audio & Image Dual-Medium Steganography**:
+  * **Images**: Lossless PNG, BMP, TIFF, and lossless WEBP carriers (RGB and RGBA).
+  * **Audio**: Uncompressed PCM WAV files (8-bit, 16-bit, 32-bit, mono and stereo).
+  * Ultra-high acoustic fidelity: Signal-to-Noise Ratio (**SNR > 70–108 dB**) for 1-bit LSB audio concealment.
+  * Automated routing: the unified dispatcher automatically identifies media format and adapts encoding/decoding.
+* **👁️ StegDetect Visual Contrast Normalizer**:
+  * Directly inspired by `ragibson/Steganography`'s StegDetect tool.
+  * Extracts the lowest $N$ LSBs (1 to 8) and normalizes the dynamic range across the full [0, 255] spectrum.
+  * Instantly reveals hidden watermarks, steganographic noise patterns, and tampered bitplanes invisible to the naked eye.
+* **🗜️ Transparent Pre-Compression (Deflate/zlib)**:
+  * Optional pre-compression (`--compress` / `-z`) compresses text or binary payloads before encryption.
+  * Significantly increases practical carrier capacity while reducing the required embedding footprint.
+* **⚡ Vectorized Bit Engine & Benchmark Suite**:
+  * High-performance bit interleaving and deinterleaving vectorized with NumPy.
+  * Built-in benchmarking suite testing throughput across bit depths 1–8 (achieving > 60 MB/s decode speeds).
 * **🔬 Advanced Forensic & Steganalysis Lab**:
-  * **Visual Bit-Plane Slicer**: Inspect bit planes 0 (LSB) through 7 (MSB) individually across Red, Green, Blue, Grayscale, or Combined channels to detect visual artifacts.
-  * **Chi-Square ($\chi^2$) Steganalysis**: Statistical Pairs of Values (PoV) testing estimating steganographic detection probability ($p$-value).
-  * **Shannon Entropy Analysis**: Multi-channel and LSB plane entropy calculation.
+  * **Visual Bit-Plane Slicer & StegDetect**: Real-time interactive inspection of bit planes 0–7 and amplified LSB contrast.
+  * **Chi-Square ($\chi^2$) Steganalysis**: Pairs of Values (PoV) testing estimating steganographic detection probability.
+  * **Shannon Entropy Analysis**: Multi-channel and LSB plane entropy calculation for both images and audio bitplanes.
   * **Sample Pair Analysis (SPA)**: Mathematical estimation of hidden message length.
-  * **Metadata & PNG Chunks Inspector**: Parses EXIF, ICC profiles, and custom PNG text chunks.
-  * **Forensic Report Export**: Generate audit-ready PDF, JSON, or plain text forensic reports with a single click.
+  * **Audio Forensics**: Calculates bitplane Shannon entropy, RMS signal energy, and DC bias offset.
+  * **Forensic Report Export**: Generate PDF, JSON, or plain text forensic dossiers with cryptographic hashes.
 * **🎨 Modern Desktop GUI**:
-  * Built with PyQt6 featuring a sleek dark theme, drag-and-drop zones, live capacity gauges, password entropy strength meter, and audit logging.
+  * Built with PyQt6 featuring a sleek dark theme, drag-and-drop zones for images and audio, live capacity gauges, and real-time audio waveform metadata.
 * **💻 Complete Headless CLI**:
-  * Robust command-line interface for automated scripting and server pipelines.
+  * Comprehensive CLI with subcommands: `hide`, `extract`, `analyze`, `capacity`, `stegdetect`, and `benchmark`.
 
 ---
 
 ## 📸 Demonstration Screenshots
 
-| 1. Hide Data View | 2. Embedding Quality Analysis |
+| 1. Hide Data View (Image & Audio) | 2. Embedding Quality Analysis |
 | :---: | :---: |
 | ![Hide Data](docs/screenshots/01_encode_view.png) | ![Embed Results](docs/screenshots/02_embed_result.png) |
 
-| 3. Extract & Decrypt View | 4. Steganalysis & Forensics Lab |
+| 3. Extract & Decrypt View | 4. Steganalysis & StegDetect Lab |
 | :---: | :---: |
 | ![Extract Data](docs/screenshots/03_decode_view.png) | ![Forensics Lab](docs/screenshots/04_forensics_lab.png) |
 
@@ -58,29 +69,31 @@
 ```mermaid
 flowchart TD
     subgraph SENDER["1. Data Concealment (Sender)"]
-        A[Secret Text or Binary File] --> B[PBKDF2 Key Derivation<br/>200,000 Rounds + Salt]
-        B --> C[AES-256-GCM Encryption]
-        C --> D[Header Builder + CRC32 Checksum]
-        D --> E[NumPy Vectorized LSB Embedder<br/>1-4 Bits/Channel]
-        F[Original Carrier PNG] --> E
-        E --> G[Stego Image Output<br/>PSNR > 50 dB]
+        A[Secret Text or Binary File] --> B[Optional Deflate Compression]
+        B --> C[PBKDF2 Key Derivation<br/>200,000 Rounds + Salt]
+        C --> D[AES-256-GCM Encryption]
+        D --> E[Header Builder + CRC32 Checksum]
+        F[Cover Image or WAV Audio] --> G[Unified Stego Dispatcher]
+        E --> G
+        G --> H[Vectorized LSB Interleaver<br/>1-4 Bits/Unit]
+        H --> I[Stego Media Output<br/>PSNR > 50 dB / SNR > 70 dB]
     end
 
     subgraph RECEIVER["2. Extraction & Decryption (Receiver)"]
-        G --> H[Header Prober & CRC32 Validator]
-        H --> I[Bit Stream Slicer]
-        I --> J[AES-256-GCM Decryptor]
-        K[Passphrase] --> J
-        J -->|Tag Verified Authentic| L[Extracted Text or Reconstructed File]
-        J -->|Tag Mismatch / Altered| M[InvalidPasswordError / Tamper Alert]
+        I --> J[Unified Header Prober]
+        J --> K[Bit Deinterleaver]
+        K --> L[AES-256-GCM Decryptor]
+        M[Passphrase] --> L
+        L -->|Tag Verified Authentic| N[Auto-Decompressor]
+        N --> O[Extracted Text or Reconstructed File]
+        L -->|Tag Mismatch / Altered| P[InvalidPasswordError / Tamper Alert]
     end
 
     subgraph FORENSICS["3. Forensic Steganalysis Lab"]
-        G --> N[Bit-Plane Slicer 0-7]
-        G --> O[Chi-Square Steganalysis]
-        G --> P[Shannon Entropy Analysis]
-        G --> Q[Metadata & PNG Chunk Inspector]
-        N & O & P & Q --> R[Forensic Report PDF/JSON/TXT]
+        I --> Q[StegDetect Contrast Normalizer]
+        I --> R[Bit-Plane Slicer 0-7]
+        I --> S[Chi-Square & Audio Entropy Analysis]
+        Q & R & S --> T[Forensic Report PDF/TXT/JSON]
     end
 ```
 
@@ -111,50 +124,70 @@ python -m pytest tests/ -v
 
 ## 💻 Command-Line Interface (CLI) Guide
 
-### 1. Hide Data in an Image
-* **Hide Plain Text**:
+### 1. Hide Data in Image or WAV Audio
+* **Hide Text in Lossless Image**:
   ```bash
-  python main.py hide --carrier demo_assets/carrier_cyber_landscape.png --text "Top Secret Message" --password "MasterKey#2026!" --output stego_text.png --bits 1
+  python main.py hide --carrier demo_assets/carrier_cyber_landscape.png --text "Top Secret Message" --password "MasterKey#2026!" --output stego_image.png --bits 1
   ```
-* **Hide Arbitrary Binary File (PDF, DOCX, ZIP, etc.)**:
+* **Hide Binary File with Pre-Compression**:
   ```bash
-  python main.py hide --carrier demo_assets/carrier_gradient_1200x800.png --file demo_assets/confidential_briefing.pdf --password "MasterKey#2026!" --output stego_pdf.png --bits 2
+  python main.py hide --carrier demo_assets/carrier_gradient_1200x800.png --file demo_assets/confidential_briefing.pdf --password "MasterKey#2026!" --output stego_compressed.png --compress
   ```
-
-### 2. Extract Data from a Stego Image
-* **Extract to Console / File**:
+* **Hide Secret Data into WAV Audio**:
   ```bash
-  python main.py extract --stego stego_text.png --password "MasterKey#2026!"
-  ```
-* **Extract and Save Binary File**:
-  ```bash
-  python main.py extract --stego stego_pdf.png --password "MasterKey#2026!" --output-dir ./extracted_output/
+  python main.py hide --carrier demo_assets/carrier_audio_stereo_44k.wav --text "Classified Audio Intel" --password "AudioPass#2026!" --output stego_audio.wav --bits 1
   ```
 
-### 3. Forensic Image Steganalysis
-* **Analyze & Export PDF / JSON Reports**:
+### 2. Extract Data from Stego Image or WAV Audio
+* **Extract Text Message**:
   ```bash
-  python main.py analyze --image stego_text.png --export-pdf forensic_report.pdf --export-json forensic_report.json
+  python main.py extract --stego stego_image.png --password "MasterKey#2026!"
   ```
-* **Extract Specific Bit Plane Slice**:
+* **Extract from WAV Audio**:
   ```bash
-  python main.py analyze --image stego_text.png --slice-bit 0 --slice-channel combined --slice-out lsb_plane.png
+  python main.py extract --stego stego_audio.wav --password "AudioPass#2026!"
+  ```
+* **Extract and Save Exported File**:
+  ```bash
+  python main.py extract --stego stego_compressed.png --password "MasterKey#2026!" --output-dir ./extracted_output/
   ```
 
-### 4. Check Image Data Capacity
+### 3. StegDetect Visual Contrast Normalizer
+* **Reveal Hidden Patterns (normalized across 0-255 dynamic range)**:
+  ```bash
+  python main.py stegdetect --image stego_image.png --bits 2 --output stegdetect_contrast.png
+  ```
+
+### 4. Forensic Steganalysis (Image & Audio)
+* **Analyze Image & Export PDF/JSON**:
+  ```bash
+  python main.py analyze --image stego_image.png --export-pdf image_report.pdf --export-json image_report.json
+  ```
+* **Analyze Audio WAV & Export Plain Text**:
+  ```bash
+  python main.py analyze --target stego_audio.wav --export-txt audio_report.txt
+  ```
+
+### 5. Carrier Capacity Checker
 ```bash
-python main.py capacity --image demo_assets/carrier_cyber_landscape.png --bits 1
+python main.py capacity --carrier demo_assets/carrier_audio_stereo_44k.wav --bits 1
+python main.py capacity --carrier demo_assets/carrier_cyber_landscape.png --bits 1
+```
+
+### 6. Bit Manipulation Speed Benchmark
+```bash
+python main.py benchmark --payload 1.0 --carrier 10.0
 ```
 
 ---
 
 ## 🔐 Cryptographic Header Protocol Specification
 
-SecureStego structures its embedded payload stream using a resilient binary protocol:
+CloakPix structures its embedded payload stream using a resilient binary protocol:
 
 | Offset | Field | Length | Description |
 | :--- | :--- | :--- | :--- |
-| `0x00` | `MAGIC_HEADER` | 7 bytes | Magic signature ASCII `SECSTEG` |
+| `0x00` | `MAGIC_HEADER` | 7 bytes | Magic signature ASCII `CLOAKPX` |
 | `0x07` | `VERSION` | 1 byte | Protocol version (`0x01`) |
 | `0x08` | `PAYLOAD_TYPE` | 1 byte | `0x01` = Text, `0x02` = Binary File |
 | `0x09` | `BITS_PER_CHANNEL` | 1 byte | Configured LSB bits (1 to 4) |
@@ -169,28 +202,38 @@ SecureStego structures its embedded payload stream using a resilient binary prot
 
 ---
 
-## 📊 Steganographic Quality Benchmarks
+## 📊 Steganographic Quality & Speed Benchmarks
 
-Experimental results on standard carrier images:
+### 1. Carrier Quality Benchmarks
+| Carrier Medium | Format | Embedding Density | Embedded Size | Quality Metric | Human Perception |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Cyber Landscape (800×600) | PNG | 1 Bit / Channel | 10.4 KB | **PSNR: 58.74 dB** (SSIM: 0.9999) | Imperceptible |
+| Cyber Landscape (800×600) | PNG | 2 Bits / Channel | 20.8 KB | **PSNR: 44.21 dB** (SSIM: 0.9987) | Imperceptible |
+| Geometric Gradient (1200×800) | BMP | 1 Bit / Channel | 45.2 KB | **PSNR: 59.12 dB** (SSIM: 0.9999) | Imperceptible |
+| Synthetic Stereo Audio (44.1k) | WAV | 1 Bit / Sample | 4.2 KB | **SNR: 108.67 dB** | Imperceptible |
+| Synthetic Mono Audio (22k) | WAV | 2 Bits / Sample | 2.1 KB | **SNR: 65.42 dB** | Imperceptible |
 
-| Carrier Image | Embedding Density | Embedded Size | PSNR (dB) | MSE | SSIM | Human Perception |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| Cyber Landscape (800×600) | 1 Bit / Channel | 10.4 KB | **58.74 dB** | 0.0868 | 0.99994 | Imperceptible |
-| Cyber Landscape (800×600) | 2 Bits / Channel | 20.8 KB | **44.21 dB** | 2.4510 | 0.99870 | Imperceptible |
-| Geometric Gradient (1200×800) | 1 Bit / Channel | 45.2 KB | **59.12 dB** | 0.0792 | 0.99997 | Imperceptible |
-| Geometric Gradient (1200×800) | 3 Bits / Channel | 135.0 KB | **38.45 dB** | 9.2104 | 0.99120 | Near Imperceptible |
+### 2. Bit Interleaving Engine Throughput
+| # LSBs | Interleave Encode Rate | Deinterleave Decode Rate | Status |
+| :---: | :---: | :---: | :---: |
+| **1 LSB** | 25.3 MB/s | **62.4 MB/s** | Verified |
+| **2 LSBs** | 10.6 MB/s | **51.3 MB/s** | Verified |
+| **4 LSBs** | 18.1 MB/s | **62.4 MB/s** | Verified |
+| **8 LSBs** | 27.8 MB/s | **62.5 MB/s** | Verified |
 
 ---
 
 ## 🧪 Test Suite Summary
 
-The test suite covers:
-* **AES-256-GCM & PBKDF2**: Deterministic key derivation, tamper detection, wrong passphrase rejection.
-* **LSB Engine**: Text embedding, binary file embedding (PDF, ZIP, DOCX, TXT), multi-bit density (1-4 LSBs), RGBA transparency preservation, capacity overflow checks.
-* **Forensics**: Bit-plane slicing, Shannon entropy distribution, Chi-Square steganalysis, PDF/JSON report generation.
-* **CLI & GUI**: Command parser verification, background worker threads, and UI widgets.
+The automated test suite (`python -m pytest`) contains **43 tests** covering:
+* **Audio Steganography Engine**: WAV 8-bit & 16-bit embedding/extraction, SNR computation, capacity overflow, wrong password authentication rejection, tamper detection.
+* **Audio Forensics**: Bitplane Shannon entropy, RMS energy, DC bias, TXT/JSON report export.
+* **StegDetect & Bit Engine**: Visual dynamic range normalization across 1-8 LSBs, vectorized interleaving, benchmark throughput.
+* **Unified Stego Engine**: Automated carrier format detection (Images + WAV), transparent Deflate pre-compression round-trip.
+* **Image LSB Engine & Cryptography**: AES-256-GCM authenticated encryption, PBKDF2 200k rounds, PNG/BMP/TIFF/WEBP lossless I/O.
+* **Desktop GUI & CLI**: PyQt6 widgets, background workers, capacity bars, CLI subcommands.
 
-All 28 tests pass with 100% coverage on core functionality.
+**100% test pass rate across all 43 tests.**
 
 ---
 
@@ -198,3 +241,4 @@ All 28 tests pass with 100% coverage on core functionality.
 
 Developed with ❤️ for secure, authenticated communications and steganographic research.
 Licensed under the [MIT License](LICENSE).
+Incorporates concepts and methodologies inspired by [ragibson/Steganography](https://github.com/ragibson/Steganography) under MIT License.

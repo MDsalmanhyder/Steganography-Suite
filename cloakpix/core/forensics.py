@@ -1,5 +1,5 @@
 """
-Image Forensics and Steganalysis Module for SecureStego.
+Image Forensics and Steganalysis Module for CloakPix.
 Includes visual bit-plane extraction, Chi-Square steganalysis, Shannon entropy,
 metadata extraction, and PDF/JSON forensic report generation.
 """
@@ -14,7 +14,8 @@ import numpy as np
 from PIL import Image, ExifTags, PngImagePlugin
 from scipy import stats
 
-from securestego.core.metrics import calculate_entropy
+from cloakpix.core.metrics import calculate_entropy
+
 
 
 @dataclass
@@ -137,6 +138,51 @@ class ImageForensics:
             return Image.fromarray(combined, mode="RGB")
         else:
             raise ValueError(f"Unknown channel: {channel}. Expected 'r','g','b','gray','combined'.")
+
+    @staticmethod
+    def stegdetect_amplify(
+        image_input: Union[str, Image.Image],
+        num_lsb: int = 1,
+        channel: str = "combined",
+        num_lsbs: Optional[int] = None,
+    ) -> Image.Image:
+        """
+        StegDetect visual LSB enhancer (inspired by and compatible with ragibson/Steganography).
+        Extracts the lowest `num_lsb` bits from each pixel channel and normalizes the dynamic
+        range to full [0, 255] contrast, making hidden LSB patterns immediately visible.
+        
+        Args:
+            image_input: Image path or PIL Image.
+            num_lsb: Number of LSB bits to isolate and amplify (1 to 8).
+            channel: 'r', 'g', 'b', 'gray', or 'combined'.
+            num_lsbs: Alias for num_lsb.
+            
+        Returns:
+            Normalized visual PIL Image.
+        """
+        effective_lsb = num_lsbs if num_lsbs is not None else num_lsb
+        if not (1 <= effective_lsb <= 8):
+            raise ValueError("num_lsb must be between 1 and 8.")
+
+        _, arr = ImageForensics._to_rgb_array(image_input)
+        mask = (1 << effective_lsb) - 1
+        scale = 255.0 / float(mask)
+
+        channel_lower = channel.lower()
+        if channel_lower in ("r", "g", "b"):
+            c_idx = {"r": 0, "g": 1, "b": 2}[channel_lower]
+            c_plane = ((arr[:, :, c_idx] & mask) * scale).astype(np.uint8)
+            return Image.fromarray(c_plane, mode="L")
+        elif channel_lower == "gray":
+            gray = np.array(Image.fromarray(arr).convert("L"), dtype=np.uint8)
+            gray_plane = ((gray & mask) * scale).astype(np.uint8)
+            return Image.fromarray(gray_plane, mode="L")
+        elif channel_lower == "combined":
+            amplified_rgb = ((arr[:, :, :3] & mask) * scale).astype(np.uint8)
+            return Image.fromarray(amplified_rgb, mode="RGB")
+        else:
+            raise ValueError(f"Unknown channel: {channel}. Expected 'r','g','b','gray','combined'.")
+
 
     @staticmethod
     def compute_entropy_statistics(image_input: Union[str, Image.Image]) -> EntropyStats:
@@ -331,7 +377,7 @@ class ImageForensics:
             verdict = "Steganographic Data Detected"
             risk_level = "High"
             recommendations = [
-                "Extract hidden content using SecureStego Decrypt with the authorized passphrase.",
+                "Extract hidden content using CloakPix Decrypt with the authorized passphrase.",
                 "Review visual LSB bit planes for pixel clustering and signature patterns.",
                 "Isolate image file in secure evidence vault.",
             ]
@@ -375,7 +421,7 @@ class ImageForensics:
         """Exports human-readable plain text forensic report."""
         lines = [
             "=" * 70,
-            "               SECURESTEGO IMAGE FORENSIC REPORT",
+            "               CLOAKPIX IMAGE FORENSIC REPORT",
             "=" * 70,
             f"Timestamp:       {report.timestamp}",
             f"Target Image:    {report.target_image}",
@@ -498,7 +544,7 @@ class ImageForensics:
         elements = []
 
         # Header
-        elements.append(Paragraph("<b>SecureStego Forensic & Steganalysis Report</b>", title_style))
+        elements.append(Paragraph("<b>CloakPix Forensic & Steganalysis Report</b>", title_style))
         elements.append(Paragraph(f"Generated: {report.timestamp} | Target: {report.target_image}", subtitle_style))
         elements.append(Spacer(1, 14))
 

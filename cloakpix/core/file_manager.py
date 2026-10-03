@@ -1,5 +1,5 @@
 """
-File Management and Audit Logging Module for SecureStego.
+File Management and Audit Logging Module for CloakPix.
 Handles safe lossless file saving, extraction export, and persistent operation logging.
 """
 
@@ -8,10 +8,10 @@ import mimetypes
 import os
 import time
 from dataclasses import dataclass, asdict
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from PIL import Image
 
-from securestego.core.exceptions import UnsupportedFormatError
+from cloakpix.core.exceptions import UnsupportedFormatError
 
 
 @dataclass
@@ -34,7 +34,7 @@ class AuditLogger:
 
     def __init__(self, log_dir: Optional[str] = None):
         if log_dir is None:
-            log_dir = os.path.join(os.path.expanduser("~"), ".securestego")
+            log_dir = os.path.join(os.path.expanduser("~"), ".cloakpix")
         os.makedirs(log_dir, exist_ok=True)
         self.log_file = os.path.join(log_dir, "audit_history.json")
 
@@ -125,24 +125,69 @@ class FileManager:
     @staticmethod
     def save_stego_image(image: Image.Image, output_path: str, optimize: bool = False) -> str:
         """
-        Saves stego image in lossless PNG format.
+        Saves stego image in a lossless image format (.png, .bmp, .tiff, or lossless .webp).
         
         Args:
             image: Stego PIL Image.
-            output_path: Target save path. Must have .png extension.
-            optimize: If True, uses standard PNG chunk optimization without altering pixel data.
+            output_path: Target save path (.png, .bmp, .tiff, .webp).
+            optimize: If True, uses chunk optimization where applicable.
             
         Returns:
             Saved absolute file path.
         """
-        if not output_path.lower().endswith(".png"):
+        ext = os.path.splitext(output_path)[1].lower()
+        if ext in (".jpg", ".jpeg"):
+            raise UnsupportedFormatError(
+                "JPEG is a lossy compression format that alters pixel values and destroys "
+                "steganographic data. Please save as PNG, BMP, TIFF, or lossless WEBP."
+            )
+
+        if ext not in (".png", ".bmp", ".tiff", ".tif", ".webp"):
+            # Default to PNG if unknown or missing extension
             output_path = os.path.splitext(output_path)[0] + ".png"
+            ext = ".png"
 
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
-        # Lossless PNG save
-        image.save(output_path, format="PNG", optimize=optimize)
+        if ext == ".png":
+            image.save(output_path, format="PNG", optimize=optimize)
+        elif ext == ".bmp":
+            image.save(output_path, format="BMP")
+        elif ext in (".tiff", ".tif"):
+            image.save(output_path, format="TIFF", compression="raw")
+        elif ext == ".webp":
+            image.save(output_path, format="WEBP", lossless=True)
         return os.path.abspath(output_path)
+
+    @staticmethod
+    def save_stego_audio(
+        samples_or_bytes: Union[bytes, bytearray, Any],
+        params_or_path: Any,
+        output_path: Optional[str] = None,
+    ) -> str:
+        """
+        Saves stego audio in lossless uncompressed WAV format.
+        """
+        import wave
+        if output_path is None:
+            dest = params_or_path
+            os.makedirs(os.path.dirname(os.path.abspath(dest)), exist_ok=True)
+            with open(dest, "wb") as f:
+                f.write(samples_or_bytes)
+            return os.path.abspath(dest)
+        else:
+            dest = output_path
+            params = params_or_path
+            os.makedirs(os.path.dirname(os.path.abspath(dest)), exist_ok=True)
+            raw = (
+                samples_or_bytes
+                if isinstance(samples_or_bytes, (bytes, bytearray))
+                else samples_or_bytes.tobytes()
+            )
+            with wave.open(dest, "wb") as wf:
+                wf.setparams(params)
+                wf.writeframes(raw)
+            return os.path.abspath(dest)
 
     @staticmethod
     def export_extracted_file(

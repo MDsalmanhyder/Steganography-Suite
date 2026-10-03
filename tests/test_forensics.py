@@ -1,13 +1,13 @@
 """
-Unit tests for forensics, steganalysis, and report generation in SecureStego.
+Unit tests for forensics, steganalysis, and report generation in CloakPix.
 """
 
 import numpy as np
 import pytest
 from PIL import Image
 
-from securestego.core.forensics import ImageForensics
-from securestego.core.stego_engine import StegoEngine
+from cloakpix.core.forensics import ImageForensics
+from cloakpix.core.stego_engine import StegoEngine
 
 
 @pytest.fixture

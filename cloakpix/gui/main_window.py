@@ -1,5 +1,5 @@
 """
-Main Application Window for SecureStego.
+Main Application Window for CloakPix.
 Combines tabs, menus, status bar, and modern styling.
 """
 
@@ -26,14 +26,15 @@ from PyQt6.QtWidgets import (
 from PIL import Image
 import numpy as np
 
-from securestego import __version__
-from securestego.core.file_manager import AuditLogger
-from securestego.core.metrics import calculate_image_capacity
-from securestego.gui.styles import DARK_THEME_QSS
-from securestego.gui.views.encode_view import EncodeView
-from securestego.gui.views.decode_view import DecodeView
-from securestego.gui.views.forensics_view import ForensicsView
-from securestego.gui.views.history_view import HistoryView
+from cloakpix import __version__
+from cloakpix.core.file_manager import AuditLogger
+from cloakpix.core.metrics import calculate_image_capacity
+from cloakpix.gui.styles import DARK_THEME_QSS
+from cloakpix.gui.views.encode_view import EncodeView
+from cloakpix.gui.views.decode_view import DecodeView
+from cloakpix.gui.views.forensics_view import ForensicsView
+from cloakpix.gui.views.history_view import HistoryView
+
 
 
 class CapacityCalculatorDialog(QDialog):
@@ -94,13 +95,13 @@ class CapacityCalculatorDialog(QDialog):
 
 class MainWindow(QMainWindow):
     """
-    Primary desktop interface window for SecureStego.
+    Primary desktop interface window for CloakPix.
     """
 
     def __init__(self):
         super().__init__()
         self.logger = AuditLogger()
-        self.setWindowTitle(f"SecureStego – Secure Image Steganography & Forensics v{__version__}")
+        self.setWindowTitle(f"CloakPix – Secure Image Steganography & Forensics v{__version__}")
         self.resize(1100, 780)
         self.setMinimumSize(920, 640)
 
@@ -140,7 +141,7 @@ class MainWindow(QMainWindow):
         crypto_action.triggered.connect(self._show_crypto_info)
         help_menu.addAction(crypto_action)
 
-        about_action = QAction("About SecureStego", self)
+        about_action = QAction("About CloakPix", self)
         about_action.triggered.connect(self._show_about_dialog)
         help_menu.addAction(about_action)
 
@@ -213,7 +214,7 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self,
             "Cryptographic Security Model",
-            "SecureStego Cryptographic Architecture:\n\n"
+            "CloakPix Cryptographic Architecture:\n\n"
             "• Encryption Cipher: AES-256-GCM (Galois/Counter Mode)\n"
             "• Key Derivation: PBKDF2-HMAC-SHA256 with 200,000 iterations\n"
             "• Salt: 128-bit (16-byte) cryptographically secure pseudorandom salt\n"
@@ -227,8 +228,8 @@ class MainWindow(QMainWindow):
     def _show_about_dialog(self):
         QMessageBox.about(
             self,
-            "About SecureStego",
-            f"<b>SecureStego v{__version__}</b><br><br>"
+            "About CloakPix",
+            f"<b>CloakPix v{__version__}</b><br><br>"
             "An enterprise-grade cross-platform steganography and image forensics suite.<br><br>"
             "<b>Features:</b><br>"
             "• AES-256-GCM encrypted LSB data embedding (Text & Arbitrary Files)<br>"
@@ -238,3 +239,4 @@ class MainWindow(QMainWindow):
             "• Persistent audit logging & capacity calculations<br><br>"
             "Built with Python 3.12, PyQt6, PyCryptodome, Pillow, and NumPy.",
         )
+

@@ -1,6 +1,6 @@
 """
-Decode / Data Extraction View for SecureStego.
-Extracts and decrypts text or binary files from stego images with integrity verification.
+Decode / Data Extraction View for CloakPix.
+Extracts and decrypts text or binary files from stego images or audio carriers with cryptographic integrity verification.
 """
 
 import os
@@ -22,16 +22,16 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from securestego.core.stego_engine import StegoEngine, ExtractionResult
-from securestego.core.file_manager import FileManager, AuditLogger
-from securestego.core.exceptions import (
+from cloakpix.core.unified_engine import UnifiedStegoEngine, UnifiedExtractionResult
+from cloakpix.core.file_manager import FileManager, AuditLogger
+from cloakpix.core.exceptions import (
     InvalidPasswordError,
     IntegrityCheckFailedError,
     PayloadNotFoundError,
-    SecureStegoError,
+    CloakPixError,
 )
-from securestego.gui.components.drop_zone import DropZone
-from securestego.gui.components.password_box import PasswordBox
+from cloakpix.gui.components.drop_zone import DropZone
+from cloakpix.gui.components.password_box import PasswordBox
 
 
 class ExtractionWorker(QThread):
@@ -39,7 +39,7 @@ class ExtractionWorker(QThread):
     finished = pyqtSignal(object)
     error = pyqtSignal(str)
 
-    def __init__(self, engine: StegoEngine, stego_path: str, password: str):
+    def __init__(self, engine: UnifiedStegoEngine, stego_path: str, password: str):
         super().__init__()
         self.engine = engine
         self.stego_path = stego_path
@@ -58,15 +58,15 @@ class ExtractionWorker(QThread):
 
 class DecodeView(QWidget):
     """
-    Main View for Extracting and Decrypting Hidden Data from Stego Images.
+    Main View for Extracting and Decrypting Hidden Data from Stego Carriers (Images or Audio).
     """
 
     def __init__(self, logger: Optional[AuditLogger] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.logger = logger or AuditLogger()
-        self.engine = StegoEngine()
+        self.engine = UnifiedStegoEngine()
         self.current_stego_path: Optional[str] = None
-        self.last_extraction_result: Optional[ExtractionResult] = None
+        self.last_extraction_result: Optional[UnifiedExtractionResult] = None
         self.worker: Optional[ExtractionWorker] = None
 
         self._init_ui()
@@ -81,15 +81,15 @@ class DecodeView(QWidget):
         layout = QVBoxLayout(scroll_content)
         layout.setSpacing(14)
 
-        # 1. Stego Image Selection
-        image_group = QGroupBox("1. Select Stego Image")
+        # 1. Stego Carrier Selection
+        image_group = QGroupBox("1. Select Stego Carrier (Image or WAV Audio)")
         img_layout = QVBoxLayout(image_group)
 
         self.stego_drop = DropZone(
-            title="Drop Stego Image to Extract Data From",
-            subtitle="Lossless PNG image containing hidden data",
-            file_filters="Image Files (*.png *.bmp *.tiff *.webp);;All Files (*.*)",
-            is_image_only=True,
+            title="Drop Stego Image or WAV Audio Here",
+            subtitle="Lossless PNG/BMP/TIFF/WEBP or WAV Audio containing hidden data",
+            file_filters="Supported Stego Files (*.png *.bmp *.tiff *.webp *.wav);;Images (*.png *.bmp *.tiff *.webp);;Audio (*.wav);;All Files (*.*)",
+            is_image_only=False,
         )
         self.stego_drop.file_selected.connect(self._on_stego_selected)
         self.stego_drop.file_cleared.connect(self._on_stego_cleared)
@@ -191,7 +191,7 @@ class DecodeView(QWidget):
 
     def _on_extract_clicked(self):
         if not self.current_stego_path or not os.path.exists(self.current_stego_path):
-            QMessageBox.warning(self, "Image Missing", "Please select a stego image first.")
+            QMessageBox.warning(self, "Carrier Missing", "Please select a stego image or audio file first.")
             return
 
         password = self.password_box.text()
@@ -212,7 +212,7 @@ class DecodeView(QWidget):
         self.worker.error.connect(self._on_extract_error)
         self.worker.start()
 
-    def _on_extract_success(self, result: ExtractionResult):
+    def _on_extract_success(self, result: UnifiedExtractionResult):
         self.extract_btn.setEnabled(True)
         self.progress_bar.setVisible(False)
         self.last_extraction_result = result
@@ -224,14 +224,18 @@ class DecodeView(QWidget):
             target_image=self.current_stego_path,
             payload_type=result.payload_type,
             payload_size_bytes=result.payload_size_bytes,
-            details=f"Extracted {result.payload_size_bytes:,} bytes ({result.payload_type.upper()}) | Verified: AES-256-GCM Authentic",
+            details=f"Extracted {result.payload_size_bytes:,} bytes ({result.payload_type.upper()}) from {result.carrier_type.upper()} | Verified: AES-256-GCM Authentic",
             integrity_verified=True,
         )
 
+        carrier_desc = "WAV Audio" if result.carrier_type == "audio" else "Lossless Image"
+        density_desc = f"{result.bits_per_channel} Bit(s) / Audio Sample" if result.carrier_type == "audio" else f"{result.bits_per_channel} Bit(s) / Color Channel"
+
         self.info_label.setText(
+            f"• <b>Carrier Type:</b> {carrier_desc}<br>"
             f"• <b>Payload Type:</b> {result.payload_type.upper()}<br>"
             f"• <b>Payload Size:</b> {result.payload_size_bytes:,} bytes<br>"
-            f"• <b>Embedding Density Detected:</b> {result.bits_per_channel} Bit(s) / Channel<br>"
+            f"• <b>Embedding Density Detected:</b> {density_desc}<br>"
             f"• <b>Cryptographic Tag:</b> Valid (Authenticity Confirmed)"
         )
 
@@ -250,7 +254,7 @@ class DecodeView(QWidget):
         QMessageBox.information(
             self,
             "Extraction Complete",
-            f"Hidden data successfully extracted and verified authentic!\nPayload Type: {result.payload_type.upper()}",
+            f"Hidden data successfully extracted and verified authentic!\nSource: {carrier_desc}\nPayload Type: {result.payload_type.upper()}",
         )
 
     def _on_extract_error(self, error_msg: str):
@@ -271,11 +275,11 @@ class DecodeView(QWidget):
                 "Authentication Failed",
                 "Decryption failed: Incorrect passphrase or data was altered/tampered.",
             )
-        elif "No valid SecureStego data" in error_msg:
+        elif "No valid CloakPix data" in error_msg or "No valid SecureStego data" in error_msg:
             QMessageBox.warning(
                 self,
                 "No Payload Detected",
-                "No SecureStego header found in this image. Ensure the image has not been compressed/converted to JPEG.",
+                "No CloakPix header found in this carrier. Ensure the file has not been compressed, transcoded, or modified.",
             )
         else:
             QMessageBox.critical(self, "Extraction Error", f"Failed to extract hidden data:\n\n{error_msg}")

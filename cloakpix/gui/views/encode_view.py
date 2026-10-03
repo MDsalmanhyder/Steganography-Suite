@@ -1,6 +1,6 @@
 """
-Encode / Data Hiding View for SecureStego.
-Provides rich interface for embedding encrypted text or files into images.
+Encode / Data Hiding View for CloakPix.
+Provides rich interface for embedding encrypted text or files into images and WAV audio.
 """
 
 import os
@@ -9,6 +9,7 @@ from PIL import Image
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QButtonGroup,
+    QCheckBox,
     QFileDialog,
     QFrame,
     QGridLayout,
@@ -26,13 +27,14 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from securestego.core.stego_engine import StegoEngine, EmbeddingResult
-from securestego.core.file_manager import FileManager, AuditLogger
-from securestego.core.metrics import calculate_image_capacity
-from securestego.core.exceptions import CapacityOverflowError, SecureStegoError
-from securestego.gui.components.drop_zone import DropZone
-from securestego.gui.components.capacity_bar import CapacityBar
-from securestego.gui.components.password_box import PasswordBox
+from cloakpix.core.unified_engine import UnifiedStegoEngine, UnifiedEmbeddingResult
+from cloakpix.core.audio_stego import calculate_audio_capacity
+from cloakpix.core.file_manager import FileManager, AuditLogger
+from cloakpix.core.metrics import calculate_image_capacity
+from cloakpix.core.exceptions import CapacityOverflowError, CloakPixError
+from cloakpix.gui.components.drop_zone import DropZone
+from cloakpix.gui.components.capacity_bar import CapacityBar
+from cloakpix.gui.components.password_box import PasswordBox
 
 
 class EmbeddingWorker(QThread):
@@ -42,12 +44,13 @@ class EmbeddingWorker(QThread):
 
     def __init__(
         self,
-        engine: StegoEngine,
+        engine: UnifiedStegoEngine,
         carrier_path: str,
         password: str,
         secret_text: Optional[str] = None,
         secret_file_path: Optional[str] = None,
         bits_per_channel: int = 1,
+        compress: bool = True,
     ):
         super().__init__()
         self.engine = engine
@@ -56,6 +59,7 @@ class EmbeddingWorker(QThread):
         self.secret_text = secret_text
         self.secret_file_path = secret_file_path
         self.bits_per_channel = bits_per_channel
+        self.compress = compress
 
     def run(self):
         try:
@@ -65,6 +69,7 @@ class EmbeddingWorker(QThread):
                 secret_text=self.secret_text,
                 secret_file_path=self.secret_file_path,
                 bits_per_channel=self.bits_per_channel,
+                compress=self.compress,
             )
             self.finished.emit(res)
         except Exception as e:
@@ -73,16 +78,16 @@ class EmbeddingWorker(QThread):
 
 class EncodeView(QWidget):
     """
-    Main View for Hiding Data (Text / Files) in Carrier Images.
+    Main View for Hiding Data (Text / Files) in Carrier Images or Audio.
     """
 
     def __init__(self, logger: Optional[AuditLogger] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.logger = logger or AuditLogger()
-        self.engine = StegoEngine()
+        self.engine = UnifiedStegoEngine()
         self.current_carrier_path: Optional[str] = None
         self.current_secret_file_path: Optional[str] = None
-        self.last_embedding_result: Optional[EmbeddingResult] = None
+        self.last_embedding_result: Optional[UnifiedEmbeddingResult] = None
         self.worker: Optional[EmbeddingWorker] = None
 
         self._init_ui()
@@ -97,15 +102,15 @@ class EncodeView(QWidget):
         layout = QVBoxLayout(scroll_content)
         layout.setSpacing(14)
 
-        # 1. Carrier Image Section
-        carrier_group = QGroupBox("1. Select Carrier Image")
+        # 1. Carrier Media Section
+        carrier_group = QGroupBox("1. Select Carrier Media (Image or Audio)")
         carrier_layout = QVBoxLayout(carrier_group)
 
         self.carrier_drop = DropZone(
-            title="Drop Cover / Carrier Image Here",
-            subtitle="Lossless PNG recommended for best results",
-            file_filters="Image Files (*.png *.bmp *.tiff *.webp *.jpg);;All Files (*.*)",
-            is_image_only=True,
+            title="Drop Cover Carrier (Image or WAV Audio) Here",
+            subtitle="Supports PNG, BMP, TIFF, WEBP, and WAV Audio",
+            file_filters="Supported Carriers (*.png *.bmp *.tiff *.webp *.wav);;Images (*.png *.bmp *.tiff *.webp);;Audio Files (*.wav);;All Files (*.*)",
+            is_image_only=False,
         )
         self.carrier_drop.file_selected.connect(self._on_carrier_selected)
         self.carrier_drop.file_cleared.connect(self._on_carrier_cleared)
@@ -178,6 +183,12 @@ class EncodeView(QWidget):
         self.password_box = PasswordBox()
         config_layout.addWidget(self.password_box)
 
+        # Compression Checkbox
+        self.compress_cb = QCheckBox("🗜️ Pre-compress payload before encryption (Deflate/zlib)")
+        self.compress_cb.setChecked(True)
+        self.compress_cb.setStyleSheet("color: #58a6ff; font-weight: bold; margin: 4px 0;")
+        config_layout.addWidget(self.compress_cb)
+
         # LSB Slider Row
         slider_layout = QHBoxLayout()
         slider_layout.addWidget(QLabel("LSB Embedding Density:"))
@@ -191,7 +202,7 @@ class EncodeView(QWidget):
         self.lsb_slider.valueChanged.connect(self._on_lsb_slider_changed)
         slider_layout.addWidget(self.lsb_slider)
 
-        self.lsb_label = QLabel("1 Bit / Channel (Max Visual Fidelity, PSNR > 50 dB)")
+        self.lsb_label = QLabel("1 Bit / Channel (Max Visual/Acoustic Fidelity)")
         self.lsb_label.setStyleSheet("color: #58a6ff; font-weight: bold;")
         slider_layout.addWidget(self.lsb_label)
 
@@ -220,7 +231,7 @@ class EncodeView(QWidget):
         self.metrics_label.setStyleSheet("font-size: 13px; line-height: 1.4;")
         result_layout.addWidget(self.metrics_label)
 
-        self.save_btn = QPushButton("💾 Save Stego Image (Lossless PNG)")
+        self.save_btn = QPushButton("💾 Save Stego Carrier")
         self.save_btn.setObjectName("accentButton")
         self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.save_btn.clicked.connect(self._on_save_clicked)
@@ -257,10 +268,10 @@ class EncodeView(QWidget):
 
     def _on_lsb_slider_changed(self, value: int):
         labels = {
-            1: "1 Bit / Channel (Max Visual Fidelity, PSNR > 50 dB)",
-            2: "2 Bits / Channel (Balanced Capacity, PSNR ~44 dB)",
-            3: "3 Bits / Channel (High Capacity, PSNR ~38 dB)",
-            4: "4 Bits / Channel (Maximum Capacity, PSNR ~32 dB)",
+            1: "1 Bit / Channel (Max Fidelity, PSNR > 50 dB / SNR > 60 dB)",
+            2: "2 Bits / Channel (Balanced Capacity, High Quality)",
+            3: "3 Bits / Channel (High Capacity)",
+            4: "4 Bits / Channel (Maximum Capacity)",
         }
         self.lsb_label.setText(labels.get(value, f"{value} Bits"))
         self._recalc_capacity()
@@ -283,20 +294,30 @@ class EncodeView(QWidget):
         estimated_stream = raw_bytes + 128 if raw_bytes > 0 else 0
 
         if self.current_carrier_path and os.path.exists(self.current_carrier_path):
-            try:
-                with Image.open(self.current_carrier_path) as img:
-                    w, h = img.size
-                    cap_info = calculate_image_capacity(w, h, channels=3, bits_per_channel=bpc)
+            ext = os.path.splitext(self.current_carrier_path)[1].lower()
+            if ext == ".wav":
+                try:
+                    cap_info = calculate_audio_capacity(self.current_carrier_path, bpc)
                     max_bytes = cap_info["raw_capacity_bytes"]
                     self.capacity_bar.update_capacity(estimated_stream, max_bytes)
-            except Exception:
-                self.capacity_bar.reset()
+                except Exception:
+                    self.capacity_bar.reset()
+            else:
+                try:
+                    with Image.open(self.current_carrier_path) as img:
+                        w, h = img.size
+                        channels = 4 if img.mode == "RGBA" else 3
+                        cap_info = calculate_image_capacity(w, h, channels=channels, bits_per_channel=bpc)
+                        max_bytes = cap_info["raw_capacity_bytes"]
+                        self.capacity_bar.update_capacity(estimated_stream, max_bytes)
+                except Exception:
+                    self.capacity_bar.reset()
         else:
             self.capacity_bar.reset()
 
     def _on_embed_clicked(self):
         if not self.current_carrier_path or not os.path.exists(self.current_carrier_path):
-            QMessageBox.warning(self, "Carrier Missing", "Please select a carrier image first.")
+            QMessageBox.warning(self, "Carrier Missing", "Please select a carrier image or audio file first.")
             return
 
         password = self.password_box.text()
@@ -319,6 +340,7 @@ class EncodeView(QWidget):
             secret_file_path = self.current_secret_file_path
 
         bpc = self.lsb_slider.value()
+        compress = self.compress_cb.isChecked()
 
         # Start embedding in background worker
         self.embed_btn.setEnabled(False)
@@ -331,12 +353,13 @@ class EncodeView(QWidget):
             secret_text=secret_text,
             secret_file_path=secret_file_path,
             bits_per_channel=bpc,
+            compress=compress,
         )
         self.worker.finished.connect(self._on_embed_success)
         self.worker.error.connect(self._on_embed_error)
         self.worker.start()
 
-    def _on_embed_success(self, result: EmbeddingResult):
+    def _on_embed_success(self, result: UnifiedEmbeddingResult):
         self.embed_btn.setEnabled(True)
         self.progress_bar.setVisible(False)
         self.last_embedding_result = result
@@ -348,27 +371,47 @@ class EncodeView(QWidget):
             target_image=self.current_carrier_path,
             payload_type=result.payload_type,
             payload_size_bytes=result.payload_bytes,
-            details=f"Embedded {result.total_embedded_bytes:,} bytes ({result.capacity_used_pct}% cap) | PSNR: {result.psnr_db} dB",
+            details=f"Embedded {result.total_embedded_bytes:,} bytes ({result.capacity_used_pct}% cap) into {result.carrier_type.upper()}",
             integrity_verified=True,
         )
 
-        quality_badge = "🟢 Excellent Fidelity (Imperceptible)" if result.psnr_db >= 48.0 else "🟡 Good Quality"
-        self.metrics_label.setText(
-            f"✅ <b>Data Successfully Encrypted & Embedded!</b><br><br>"
-            f"• <b>Payload Size:</b> {result.payload_bytes:,} bytes ({result.payload_type.upper()})<br>"
-            f"• <b>Total Embedded Stream:</b> {result.total_embedded_bytes:,} bytes ({result.capacity_used_pct}% of image capacity)<br>"
-            f"• <b>Peak Signal-to-Noise Ratio (PSNR):</b> <b>{result.psnr_db} dB</b> ({quality_badge})<br>"
-            f"• <b>Mean Squared Error (MSE):</b> {result.mse}<br>"
-            f"• <b>Structural Similarity (SSIM):</b> {result.ssim}<br>"
-            f"• <b>Encryption:</b> AES-256-GCM (PBKDF2 200k rounds)"
-        )
+        comp_badge = "Enabled (zlib Deflate)" if self.compress_cb.isChecked() else "Disabled"
+
+        if result.carrier_type == "audio":
+            snr_badge = "🟢 Imperceptible Acoustic Noise" if (result.snr_db or 0.0) >= 60.0 else "🟡 Good Audio Quality"
+            self.metrics_label.setText(
+                f"✅ <b>Data Successfully Encrypted & Embedded into Audio!</b><br><br>"
+                f"• <b>Carrier Type:</b> WAV Audio (PCM)<br>"
+                f"• <b>Payload Size:</b> {result.payload_bytes:,} bytes ({result.payload_type.upper()})<br>"
+                f"• <b>Pre-Compression:</b> {comp_badge}<br>"
+                f"• <b>Total Embedded Stream:</b> {result.total_embedded_bytes:,} bytes ({result.capacity_used_pct}% of audio capacity)<br>"
+                f"• <b>Signal-to-Noise Ratio (SNR):</b> <b>{result.snr_db:.2f} dB</b> ({snr_badge})<br>"
+                f"• <b>Encryption:</b> AES-256-GCM (PBKDF2 200k rounds)"
+            )
+            self.save_btn.setText("💾 Save Stego Audio (Lossless WAV)")
+        else:
+            quality_badge = "🟢 Excellent Fidelity (Imperceptible)" if (result.psnr_db or 0.0) >= 48.0 else "🟡 Good Quality"
+            self.metrics_label.setText(
+                f"✅ <b>Data Successfully Encrypted & Embedded into Image!</b><br><br>"
+                f"• <b>Carrier Type:</b> Image ({result.carrier_format or 'PNG'})<br>"
+                f"• <b>Payload Size:</b> {result.payload_bytes:,} bytes ({result.payload_type.upper()})<br>"
+                f"• <b>Pre-Compression:</b> {comp_badge}<br>"
+                f"• <b>Total Embedded Stream:</b> {result.total_embedded_bytes:,} bytes ({result.capacity_used_pct}% of image capacity)<br>"
+                f"• <b>Peak Signal-to-Noise Ratio (PSNR):</b> <b>{result.psnr_db} dB</b> ({quality_badge})<br>"
+                f"• <b>Mean Squared Error (MSE):</b> {result.mse}<br>"
+                f"• <b>Structural Similarity (SSIM):</b> {result.ssim}<br>"
+                f"• <b>Encryption:</b> AES-256-GCM (PBKDF2 200k rounds)"
+            )
+            self.save_btn.setText("💾 Save Stego Image (Lossless PNG/BMP/TIFF/WEBP)")
+
         self.save_btn.setVisible(True)
         self.result_card.setVisible(True)
 
+        metric_str = f"SNR: {result.snr_db:.2f} dB" if result.carrier_type == "audio" else f"PSNR: {result.psnr_db} dB"
         QMessageBox.information(
             self,
             "Embedding Complete",
-            f"Data successfully encrypted and embedded into image!\nPSNR: {result.psnr_db} dB",
+            f"Data successfully encrypted and embedded into {result.carrier_type.upper()}!\n{metric_str}",
         )
 
     def _on_embed_error(self, error_msg: str):
@@ -386,32 +429,60 @@ class EncodeView(QWidget):
         QMessageBox.critical(self, "Embedding Error", f"Failed to embed data:\n\n{error_msg}")
 
     def _on_save_clicked(self):
-        if not self.last_embedding_result or not self.last_embedding_result.stego_image:
+        if not self.last_embedding_result:
             return
 
-        default_name = "stego_output.png"
-        if self.current_carrier_path:
-            base = os.path.splitext(os.path.basename(self.current_carrier_path))[0]
-            default_name = f"{base}_stego.png"
+        res = self.last_embedding_result
+        if res.carrier_type == "audio":
+            default_name = "stego_audio.wav"
+            if self.current_carrier_path:
+                base = os.path.splitext(os.path.basename(self.current_carrier_path))[0]
+                default_name = f"{base}_stego.wav"
 
-        save_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Stego Image",
-            default_name,
-            "PNG Image (*.png)",
-        )
-
-        if save_path:
-            FileManager.save_stego_image(self.last_embedding_result.stego_image, save_path)
-            self.logger.log_action(
-                action="EXPORT",
-                status="SUCCESS",
-                target_image=save_path,
-                details=f"Saved stego image to {save_path}",
-                integrity_verified=True,
-            )
-            QMessageBox.information(
+            save_path, _ = QFileDialog.getSaveFileName(
                 self,
-                "Saved Successfully",
-                f"Stego image successfully saved in lossless PNG format to:\n{save_path}",
+                "Save Stego Audio File",
+                default_name,
+                "WAV Audio (*.wav)",
             )
+            if save_path:
+                UnifiedStegoEngine.save_stego_carrier(res, save_path)
+                self.logger.log_action(
+                    action="EXPORT",
+                    status="SUCCESS",
+                    target_image=save_path,
+                    details=f"Saved stego audio to {save_path}",
+                    integrity_verified=True,
+                )
+                QMessageBox.information(
+                    self,
+                    "Saved Successfully",
+                    f"Stego audio successfully saved in lossless WAV format to:\n{save_path}",
+                )
+        else:
+            default_name = "stego_output.png"
+            if self.current_carrier_path:
+                base = os.path.splitext(os.path.basename(self.current_carrier_path))[0]
+                default_name = f"{base}_stego.png"
+
+            save_path, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Stego Image",
+                default_name,
+                "Lossless PNG (*.png);;Bitmap Image (*.bmp);;TIFF Image (*.tiff);;Lossless WEBP (*.webp)",
+            )
+
+            if save_path:
+                UnifiedStegoEngine.save_stego_carrier(res, save_path)
+                self.logger.log_action(
+                    action="EXPORT",
+                    status="SUCCESS",
+                    target_image=save_path,
+                    details=f"Saved stego image to {save_path}",
+                    integrity_verified=True,
+                )
+                QMessageBox.information(
+                    self,
+                    "Saved Successfully",
+                    f"Stego image successfully saved in lossless format to:\n{save_path}",
+                )

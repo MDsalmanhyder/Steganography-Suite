@@ -7,13 +7,13 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from securestego.core.stego_engine import StegoEngine
-from securestego.core.exceptions import (
+from cloakpix.core.stego_engine import StegoEngine
+from cloakpix.core.exceptions import (
     CapacityOverflowError,
     InvalidPasswordError,
     PayloadNotFoundError,
 )
-from securestego.core.metrics import calculate_psnr, calculate_mse, calculate_ssim
+from cloakpix.core.metrics import calculate_psnr, calculate_mse, calculate_ssim
 
 
 @pytest.fixture

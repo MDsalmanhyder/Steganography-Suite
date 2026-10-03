@@ -1,11 +1,11 @@
 """
-Script to capture high-resolution demonstration screenshots of SecureStego GUI.
+Script to capture high-resolution demonstration screenshots of CloakPix GUI.
 """
 
 import os
 import sys
 from PyQt6.QtWidgets import QApplication, QMessageBox
-from securestego.gui.main_window import MainWindow
+from cloakpix.gui.main_window import MainWindow
 
 # Disable blocking dialogs during automated capture
 QMessageBox.information = lambda *args, **kwargs: QMessageBox.StandardButton.Ok

@@ -1,5 +1,5 @@
 """
-Cryptographic module for SecureStego.
+Cryptographic module for CloakPix.
 Implements AES-256-GCM authenticated encryption with PBKDF2 key derivation.
 """
 
@@ -13,7 +13,7 @@ from Crypto.Hash import SHA256
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 
-from securestego.core.exceptions import (
+from cloakpix.core.exceptions import (
     InvalidPasswordError,
     IntegrityCheckFailedError,
 )

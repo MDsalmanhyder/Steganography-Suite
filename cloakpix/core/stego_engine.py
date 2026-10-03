@@ -1,5 +1,5 @@
 """
-Steganography Engine for SecureStego.
+Steganography Engine for CloakPix.
 High-performance LSB embedding and extraction powered by NumPy and Pillow.
 Supports text and arbitrary binary files with AES-256-GCM encryption.
 """
@@ -13,7 +13,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 from PIL import Image
 
-from securestego.core.crypto import (
+from cloakpix.core.crypto import (
     EncryptedPayload,
     encrypt_payload,
     decrypt_payload,
@@ -21,7 +21,7 @@ from securestego.core.crypto import (
     NONCE_SIZE_BYTES,
     TAG_SIZE_BYTES,
 )
-from securestego.core.exceptions import (
+from cloakpix.core.exceptions import (
     CapacityOverflowError,
     CorruptedImageError,
     InvalidPasswordError,
@@ -29,7 +29,7 @@ from securestego.core.exceptions import (
     PayloadNotFoundError,
     UnsupportedFormatError,
 )
-from securestego.core.metrics import (
+from cloakpix.core.metrics import (
     calculate_psnr,
     calculate_mse,
     calculate_ssim,
@@ -37,7 +37,7 @@ from securestego.core.metrics import (
 )
 
 # Steganography Protocol Constants
-MAGIC_HEADER = b"SECSTEG"  # 7 bytes
+MAGIC_HEADER = b"CLOAKPX"  # 7 bytes
 PROTOCOL_VERSION = 1       # 1 byte
 TYPE_TEXT = 1              # Payload is UTF-8 text string
 TYPE_FILE = 2              # Payload is binary file (PDF, DOCX, ZIP, etc.)
@@ -190,7 +190,7 @@ class StegoEngine:
         # Fixed pre-filename length: MAGIC(7) + VER(1) + TYPE(1) + BPC(1) + FN_LEN(2) = 12 bytes
         magic, version, ptype, bpc, fn_len = struct.unpack(">7sBBB H", header_bytes[:12])
         if magic != MAGIC_HEADER:
-            raise PayloadNotFoundError("No SecureStego header detected in carrier image.")
+            raise PayloadNotFoundError("No CloakPix header detected in carrier image.")
 
         if version != PROTOCOL_VERSION:
             raise CorruptedImageError(f"Unsupported stego protocol version: {version}")
@@ -252,6 +252,7 @@ class StegoEngine:
         secret_file_bytes: Optional[bytes] = None,
         secret_filename: Optional[str] = None,
         bits_per_channel: Optional[int] = None,
+        compress: bool = False,
     ) -> EmbeddingResult:
         """
         Embeds encrypted secret text or binary file into carrier image using LSB.
@@ -264,6 +265,7 @@ class StegoEngine:
             secret_file_bytes: Raw bytes of binary file to hide.
             secret_filename: Optional name for binary file.
             bits_per_channel: 1, 2, 3, or 4 LSB bits per channel.
+            compress: If True, compresses payload with zlib before encryption.
             
         Returns:
             EmbeddingResult containing modified image and quality metrics.
@@ -295,6 +297,10 @@ class StegoEngine:
 
         if len(raw_data) == 0:
             raise ValueError("Secret payload cannot be empty.")
+
+        # Optional pre-compression
+        if compress:
+            raw_data = zlib.compress(raw_data, level=9)
 
         bpc = bits_per_channel or self.default_bits_per_channel
         if not (1 <= bpc <= 4):
@@ -423,7 +429,7 @@ class StegoEngine:
 
         flat_carrier = carrier_rgb.reshape(-1)
 
-        # Probe bits-per-channel configurations (1 to 4 LSBs) to find valid SECSTEG header
+        # Probe bits-per-channel configurations (1 to 4 LSBs) to find valid CLOAKPX header
         detected_metadata: Optional[StegoMetadata] = None
         detected_bpc: Optional[int] = None
         detected_header_bytes: Optional[int] = None
@@ -457,7 +463,7 @@ class StegoEngine:
 
         if not detected_metadata or detected_bpc is None or detected_header_bytes is None:
             raise PayloadNotFoundError(
-                "No valid SecureStego data found in this image, or the image header was corrupted."
+                "No valid CloakPix data found in this image, or the image header was corrupted."
             )
 
         # We have the metadata! Calculate total required bytes (header + ciphertext)
@@ -491,6 +497,13 @@ class StegoEngine:
 
         # Decrypt payload using AES-256-GCM
         decrypted_bytes = decrypt_payload(encrypted_payload, password)
+
+        # Transparent decompress if payload was pre-compressed
+        if decrypted_bytes.startswith((b"\x78\x9c", b"\x78\x01", b"\x78\xda")):
+            try:
+                decrypted_bytes = zlib.decompress(decrypted_bytes)
+            except Exception:
+                pass
 
         # Format result
         if detected_metadata.payload_type == TYPE_TEXT:

@@ -1,8 +1,9 @@
 """
-Core module exports for SecureStego.
+Core module exports for CloakPix.
 """
 
-from securestego.core.exceptions import (
+from cloakpix.core.exceptions import (
+    CloakPixError,
     SecureStegoError,
     InvalidPasswordError,
     IntegrityCheckFailedError,
@@ -11,27 +12,27 @@ from securestego.core.exceptions import (
     UnsupportedFormatError,
     PayloadNotFoundError,
 )
-from securestego.core.crypto import (
+from cloakpix.core.crypto import (
     EncryptedPayload,
     derive_key,
     encrypt_payload,
     decrypt_payload,
     evaluate_password_strength,
 )
-from securestego.core.metrics import (
+from cloakpix.core.metrics import (
     calculate_mse,
     calculate_psnr,
     calculate_ssim,
     calculate_entropy,
     calculate_image_capacity,
 )
-from securestego.core.stego_engine import (
+from cloakpix.core.stego_engine import (
     StegoEngine,
     EmbeddingResult,
     ExtractionResult,
     StegoMetadata,
 )
-from securestego.core.forensics import (
+from cloakpix.core.forensics import (
     ImageForensics,
     EntropyStats,
     ChiSquareResult,
@@ -39,13 +40,36 @@ from securestego.core.forensics import (
     ImageMetadataReport,
     ForensicAnalysisReport,
 )
-from securestego.core.file_manager import (
+from cloakpix.core.file_manager import (
     FileManager,
     AuditLogger,
     AuditLogEntry,
 )
+from cloakpix.core.audio_stego import (
+    AudioStegoEngine,
+    AudioEmbeddingResult,
+    AudioExtractionResult,
+    calculate_audio_capacity,
+    calculate_audio_snr,
+)
+from cloakpix.core.audio_forensics import (
+    AudioForensics,
+    AudioForensicReport,
+    AudioEntropyStats,
+    AudioMetadataReport,
+)
+from cloakpix.core.unified_engine import (
+    UnifiedStegoEngine,
+    UnifiedResult,
+)
+from cloakpix.core.bit_engine import (
+    lsb_interleave_bytes,
+    lsb_deinterleave_bytes,
+    run_benchmark,
+)
 
 __all__ = [
+    "CloakPixError",
     "SecureStegoError",
     "InvalidPasswordError",
     "IntegrityCheckFailedError",
@@ -76,4 +100,19 @@ __all__ = [
     "FileManager",
     "AuditLogger",
     "AuditLogEntry",
+    "AudioStegoEngine",
+    "AudioEmbeddingResult",
+    "AudioExtractionResult",
+    "calculate_audio_capacity",
+    "calculate_audio_snr",
+    "AudioForensics",
+    "AudioForensicReport",
+    "AudioEntropyStats",
+    "AudioMetadataReport",
+    "UnifiedStegoEngine",
+    "UnifiedResult",
+    "lsb_interleave_bytes",
+    "lsb_deinterleave_bytes",
+    "run_benchmark",
 ]
+

@@ -5,9 +5,9 @@ Unit tests for PyQt6 GUI components and views.
 import sys
 import pytest
 from PyQt6.QtWidgets import QApplication
-from securestego.gui.main_window import MainWindow, CapacityCalculatorDialog
-from securestego.gui.components.password_box import PasswordBox
-from securestego.gui.components.capacity_bar import CapacityBar
+from cloakpix.gui.main_window import MainWindow, CapacityCalculatorDialog
+from cloakpix.gui.components.password_box import PasswordBox
+from cloakpix.gui.components.capacity_bar import CapacityBar
 
 
 @pytest.fixture(scope="session")
@@ -47,4 +47,4 @@ def test_capacity_calculator_dialog(qapp):
 def test_main_window_instantiation(qapp):
     window = MainWindow()
     assert window.tabs.count() == 4
-    assert window.windowTitle().startswith("SecureStego")
+    assert window.windowTitle().startswith("CloakPix")

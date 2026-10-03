@@ -1,3 +1,4 @@
 """
-GUI Module for SecureStego.
+GUI Module for CloakPix.
 """
+

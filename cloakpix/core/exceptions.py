@@ -1,25 +1,29 @@
 """
-Exceptions module for SecureStego.
+Exceptions module for CloakPix.
 Provides structured and descriptive domain errors.
 """
 
 
-class SecureStegoError(Exception):
-    """Base exception for all SecureStego errors."""
+class CloakPixError(Exception):
+    """Base exception for all CloakPix errors."""
     pass
 
 
-class InvalidPasswordError(SecureStegoError):
+# Backward compatibility alias
+SecureStegoError = CloakPixError
+
+
+class InvalidPasswordError(CloakPixError):
     """Raised when password authentication fails or payload cannot be decrypted."""
     pass
 
 
-class IntegrityCheckFailedError(SecureStegoError):
+class IntegrityCheckFailedError(CloakPixError):
     """Raised when cryptographic hash, GCM auth tag, or CRC header check fails."""
     pass
 
 
-class CapacityOverflowError(SecureStegoError):
+class CapacityOverflowError(CloakPixError):
     """Raised when data payload exceeds carrier image capacity."""
     def __init__(self, required_bytes: int, available_bytes: int, message: str = None):
         if not message:
@@ -32,16 +36,21 @@ class CapacityOverflowError(SecureStegoError):
         self.available_bytes = available_bytes
 
 
-class CorruptedImageError(SecureStegoError):
+class CorruptedImageError(CloakPixError):
     """Raised when carrier/stego image is corrupted or missing steganographic markers."""
     pass
 
 
-class UnsupportedFormatError(SecureStegoError):
+class UnsupportedFormatError(CloakPixError):
     """Raised when an unsupported image format is provided (e.g. lossy JPEG)."""
     pass
 
 
-class PayloadNotFoundError(SecureStegoError):
-    """Raised when no SecureStego header is detected in the image."""
+# Alias for naming consistency
+UnsupportedFileFormatError = UnsupportedFormatError
+
+
+class PayloadNotFoundError(CloakPixError):
+    """Raised when no CloakPix header is detected in the image."""
     pass
+

@@ -1,5 +1,5 @@
 """
-Script to generate test assets and demo files for SecureStego.
+Script to generate test assets and demo files for CloakPix.
 """
 
 import os
@@ -51,7 +51,7 @@ def generate_assets():
     c.setFont("Helvetica-Bold", 16)
     c.drawString(72, 720, "CONFIDENTIAL SECURITY BRIEFING")
     c.setFont("Helvetica", 11)
-    c.drawString(72, 690, "Project: SecureStego Steganographic Data Exchange")
+    c.drawString(72, 690, "Project: CloakPix Steganographic Data Exchange")
     c.drawString(72, 670, "Classification: RESTRICTED")
     c.drawString(72, 650, "Date: August 2026")
     c.drawString(72, 620, "1. This document has been extracted from an encrypted LSB steganogram.")
@@ -70,6 +70,43 @@ def generate_assets():
     with open("demo_assets/mission_plan.docx", "wb") as f:
         f.write(b"PK\x03\x04\x14\x00\x00\x00\x08\x00DOCX-SIMULATED-BINARY-CONTENT-" + b"X" * 500)
     print("Created demo_assets/mission_plan.docx")
+
+    # 7. Carrier 3: Synthetic WAV Audio Carrier (16-bit Stereo 44,100 Hz, 3 seconds)
+    import wave
+    import struct
+    sample_rate = 44100
+    duration = 3.0  # seconds
+    total_frames = int(sample_rate * duration)
+    freq_left, freq_right = 440.0, 554.37  # A4 and C#5 chord
+
+    with wave.open("demo_assets/carrier_audio_stereo_44k.wav", "wb") as wf:
+        wf.setnchannels(2)
+        wf.setsampwidth(2)  # 16-bit
+        wf.setframerate(sample_rate)
+        raw_frames = bytearray()
+        for i in range(total_frames):
+            t = float(i) / sample_rate
+            val_l = int(18000.0 * np.sin(2.0 * np.pi * freq_left * t))
+            val_r = int(18000.0 * np.sin(2.0 * np.pi * freq_right * t))
+            raw_frames.extend(struct.pack("<hh", val_l, val_r))
+        wf.writeframes(bytes(raw_frames))
+    print("Created demo_assets/carrier_audio_stereo_44k.wav")
+
+    # 8. Carrier 4: Synthetic WAV Audio Carrier (8-bit Mono 22,050 Hz, 2 seconds)
+    sample_rate_8k = 22050
+    duration_8k = 2.0
+    total_frames_8k = int(sample_rate_8k * duration_8k)
+    with wave.open("demo_assets/carrier_audio_mono_8bit.wav", "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(1)  # 8-bit unsigned
+        wf.setframerate(sample_rate_8k)
+        raw_frames_8k = bytearray()
+        for i in range(total_frames_8k):
+            t = float(i) / sample_rate_8k
+            val = int(128 + 100 * np.sin(2.0 * np.pi * 523.25 * t))
+            raw_frames_8k.append(val)
+        wf.writeframes(bytes(raw_frames_8k))
+    print("Created demo_assets/carrier_audio_mono_8bit.wav")
 
     print("\nAll demo assets generated successfully in demo_assets/")
 

@@ -1,0 +1,29 @@
+======================================================================
+               CLOAKPIX AUDIO FORENSIC REPORT
+======================================================================
+Timestamp:          2026-10-03 15:40:22 UTC
+Target Audio:       stego_audio_test.wav
+File Size:          529,244 bytes
+Duration:           3.0 seconds
+Channels:           2 (Stereo)
+Sample Rate:        44,100 Hz
+Bit Depth:          16-bit PCM
+Total Samples:      264,600
+RMS Energy:         12727.31
+DC Bias / Offset:   0.1761
+----------------------------------------------------------------------
+STATISTICAL STEGANALYSIS & ENTROPY
+• Overall Entropy:  7.686 bits/symbol
+• LSB (Bit 0):      1.0 (Randomness Index)
+• LSB (Bit 1):      1.0
+----------------------------------------------------------------------
+FORENSIC VERDICT
+• Result:           Steganographic Audio Payload Detected
+• Stego Likelihood: 99.9%
+• Risk Level:       High
+----------------------------------------------------------------------
+RECOMMENDATIONS
+• Extract hidden content using CloakPix Decrypt with the authorized passphrase.
+• High LSB randomness (>98.5% entropy) strongly indicates cryptographically concealed payload.
+• Preserve WAV file hash in chain of custody evidence vault.
+======================================================================

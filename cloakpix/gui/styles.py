@@ -1,5 +1,5 @@
 """
-Modern Dark Theme QSS Stylesheet and Color Palette for SecureStego.
+Modern Dark Theme QSS Stylesheet and Color Palette for CloakPix.
 """
 
 DARK_THEME_QSS = """
